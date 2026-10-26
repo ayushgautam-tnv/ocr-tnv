@@ -48,7 +48,8 @@ async def suggest_scope_endpoint(file: UploadFile = File(...)) -> dict:
         try:
             result = suggest_scope(ocr_text)
         except GeminiError as error:
-            raise HTTPException(status_code=502, detail=error.message) from error
+            status_code = 504 if error.status_code == 504 else 502
+            raise HTTPException(status_code=status_code, detail=error.message) from error
 
     return {
         "file_name": file.filename,

@@ -104,24 +104,39 @@ class GeminiClient:
         max_output_tokens: int,
         temperature: float,
     ) -> str:
-        response = requests.post(
-            GEMINI_ENDPOINT.format(model=model),
-            headers={
-                "Content-Type": "application/json",
-                "x-goog-api-key": self._api_key(),
-            },
-            json={
-                "system_instruction": {"parts": [{"text": system_instruction}]},
-                "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-                "generationConfig": {
-                    "temperature": temperature,
-                    "candidateCount": 1,
-                    "maxOutputTokens": max_output_tokens,
-                    "responseMimeType": response_mime_type,
+        try:
+            response = requests.post(
+                GEMINI_ENDPOINT.format(model=model),
+                headers={
+                    "Content-Type": "application/json",
+                    "x-goog-api-key": self._api_key(),
                 },
-            },
-            timeout=60,
-        )
+                json={
+                    "system_instruction": {"parts": [{"text": system_instruction}]},
+                    "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                    "generationConfig": {
+                        "temperature": temperature,
+                        "candidateCount": 1,
+                        "maxOutputTokens": max_output_tokens,
+                        "responseMimeType": response_mime_type,
+                    },
+                },
+                timeout=60,
+            )
+        except requests.Timeout as error:
+            raise GeminiError(
+                model,
+                504,
+                f"Gemini request timed out after 60 seconds using model {model}",
+                False,
+            ) from error
+        except requests.RequestException as error:
+            raise GeminiError(
+                model,
+                502,
+                f"Gemini request failed using model {model}: {error}",
+                False,
+            ) from error
 
         try:
             body = response.json()

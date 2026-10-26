@@ -15,7 +15,7 @@ def _split_models(value: str | None) -> list[str]:
 @dataclass(frozen=True)
 class Settings:
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
-    gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+    gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     gemini_fallback_models: list[str] = field(
         default_factory=lambda: _split_models(os.getenv("GEMINI_FALLBACK_MODELS"))
     )
